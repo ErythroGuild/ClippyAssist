@@ -1,3 +1,10 @@
+# Exported/Converted files
+convert/*.gif
+convert/*/frame*.png
+
+# Excel spreadsheet temporary files
+~$*.xlsx
+
 # Compiled Lua sources
 luac.out
 
