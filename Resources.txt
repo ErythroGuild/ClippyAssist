@@ -1,12 +1,10 @@
-Resources:
-
 Clippy.js
 https://github.com/smore-inc/clippy.js
 https://www.smore.com/clippy-js
 
-
 WoW:
 https://github.com/Gethe/wow-ui-textures/blob/live/LFGFRAME/LFG-Eye.PNG
+https://github.com/tekkub/wow-ui-source/blob/live/FrameXML/UIParent.lua#L3750
 
 Spriting:
 https://ezgif.com/sprite-cutter
