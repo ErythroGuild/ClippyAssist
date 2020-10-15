@@ -1,5 +1,6 @@
 # Exported/Converted files
 convert/*.gif
+convert/*.png
 convert/*/frame*.png
 
 # Excel spreadsheet temporary files
