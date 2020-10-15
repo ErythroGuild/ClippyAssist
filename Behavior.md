@@ -1,3 +1,4 @@
+## single animation, multiple triggers
 - **Congratulate**
 	- raid boss kill
 	- key timed
@@ -27,3 +28,10 @@
 - **SendMail**
 	- mail sent
 	- trade complete
+
+## single trigger, multiple animations
+- Idle
+	- *GetArtsy*
+	- *GetAttention*
+	- *LookUp*, *LookUpRight*, *LookRight*, ...
+	- *Print*
