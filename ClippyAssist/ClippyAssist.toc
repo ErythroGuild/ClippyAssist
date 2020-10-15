@@ -1,7 +1,7 @@
 ## Interface: 80300
 ## Title: Clippy Assist
 ## Author: Ernest Gu
-## Version: 0.1.0
+## Version: 0.2.0
 ## Notes: Bring back Clippy to help you improve your performance in WoW!
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
@@ -12,4 +12,5 @@ embeds.xml
 # locales.xml
 
 # core files
+data.lua
 ClippyAssist.lua
