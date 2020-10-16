@@ -4,7 +4,7 @@ convert/*.png
 convert/*/frame*.png
 
 # Intermediate font files
-font/*.bdf
+*.bdf
 
 # Excel spreadsheet temporary files
 ~$*.xlsx
