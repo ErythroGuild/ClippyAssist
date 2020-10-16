@@ -7,20 +7,20 @@ X : Completed
 
 ----------------
 
-> Alert
-  CheckingSomething
+X Alert
+X CheckingSomething
 X Congratulate
 X EmptyTrash
-> Explain
-+ GestureDown
-+ GestureLeft
-+ GestureRight
-+ GestureUp
+X Explain
+> GestureDown
+> GestureLeft
+> GestureRight
+> GestureUp
 X GetArtsy
 X GetAttention
 # GetTechy
 # GetWizardy
-> GoodBye
+X GoodBye
 X Greeting
   Hearing_1
 X Hide
@@ -36,17 +36,17 @@ X LookDown
 X LookDownLeft
 X LookDownRight
 X LookLeft
-> LookRight
-> LookUp
-> LookUpLeft
-> LookUpRight
+X LookRight
+X LookUp
+X LookUpLeft
+X LookUpRight
 X Print
-  Processing
+X Processing
 X RestPose
   Save
-  Searching
-> SendMail
+. Searching
+X SendMail
 X Show
-  Thinking
+X Thinking
   Wave
-  Writing
+. Writing
