@@ -48,5 +48,5 @@ X Save
 X SendMail
 X Show
 X Thinking
-  Wave
+. Wave
 . Writing
