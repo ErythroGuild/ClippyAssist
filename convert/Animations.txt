@@ -12,10 +12,10 @@ X CheckingSomething
 X Congratulate
 X EmptyTrash
 X Explain
-> GestureDown
-> GestureLeft
-> GestureRight
-> GestureUp
+X GestureDown
+X GestureLeft
+X GestureRight
+X GestureUp
 X GetArtsy
 X GetAttention
 # GetTechy
