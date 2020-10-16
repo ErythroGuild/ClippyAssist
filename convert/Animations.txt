@@ -44,9 +44,9 @@ X Print
 X Processing
 X RestPose
 X Save
-+ Searching
+X Searching
 X SendMail
 X Show
 X Thinking
-+ Wave
+X Wave
 . Writing
