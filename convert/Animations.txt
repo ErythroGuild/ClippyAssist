@@ -43,7 +43,7 @@ X LookUpRight
 X Print
 X Processing
 X RestPose
-  Save
+X Save
 . Searching
 X SendMail
 X Show
