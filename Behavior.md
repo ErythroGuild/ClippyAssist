@@ -1,0 +1,37 @@
+## single animation, multiple triggers
+- **Congratulate**
+	- raid boss kill
+	- key timed
+	- rare elite killed
+	- received AH mail
+	- quest completed
+	- island finished
+	- warfront complete
+	- received achievement
+	- reached reputation level
+	- level up
+	- resurrected
+	- duel won
+	- crafting complete
+- **Alert**
+	- raid warning
+	- paragon chest complete
+	- received zone quest (legion/bfa assaults)
+	- readycheck
+	- role check
+- **EmptyTrash**
+	- died
+	- key failed
+	- raid boss wipe
+	- duel lost
+	- deleted item
+- **SendMail**
+	- mail sent
+	- trade complete
+
+## single trigger, multiple animations
+- Idle
+	- *GetArtsy*
+	- *GetAttention*
+	- *LookUp*, *LookUpRight*, *LookRight*, ...
+	- *Print*

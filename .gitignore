@@ -1,6 +1,10 @@
 # Exported/Converted files
 convert/*.gif
+convert/*.png
 convert/*/frame*.png
+
+# Intermediate font files
+*.bdf
 
 # Excel spreadsheet temporary files
 ~$*.xlsx

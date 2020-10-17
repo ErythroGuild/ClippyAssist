@@ -1,0 +1,53 @@
+# : Unused/Duplicate
+. : Started
+- : Filed (files/folders)
++ : Extracted (frames)
+> : Compiled (texture map)
+X : Completed
+* : Has Issues
+
+----------------
+
+X Alert
+X CheckingSomething
+X Congratulate
+X EmptyTrash
+X Explain
+X GestureDown
+X GestureLeft
+X GestureRight
+X GestureUp
+X GetArtsy
+X GetAttention
+# GetTechy
+# GetWizardy
+X GoodBye
+X Greeting
+  Hearing_1
+X Hide
+  Idle1_1
+  IdleAtom
+  IdleEyeBrowRaise
+  IdleFingerTap
+  IdleHeadScratch
+  IdleRopePile
+  IdleSideToSide
+  IdleSnooze
+X LookDown
+X LookDownLeft
+X LookDownRight
+X LookLeft
+X LookRight
+X LookUp
+X LookUpLeft
+X LookUpRight
+X Print
+X Processing
+X RestPose
+X Save
+X Searching
+X SendMail
+X Show
+X Thinking
+X Wave
+. Writing
