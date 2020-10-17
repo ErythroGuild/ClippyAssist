@@ -22,6 +22,12 @@
 	- resurrected
 	- duel won
 	- crafting complete
+	- new mount
+	- new pet
+	- new toy
+	- new appearance set
+	- barbershop finished
+	- all battlepets healed
 - **EmptyTrash**
 	- died
 	- key failed
