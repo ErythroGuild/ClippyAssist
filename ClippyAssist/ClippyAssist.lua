@@ -168,5 +168,35 @@ end
 --------------------
 SLASH_CLIPPY1 = "/clippy"
 function SlashCmdList.CLIPPY(msg, editBox)
-	QueueAnimation(msg)	-- no error checking!
+	if msg == "" then
+		msg = "-help"
+	end
+	if msg == "-help" or msg == "-h" or msg == "-?" then
+		print("You are currently using Clippy Assist v" ..
+			GetAddOnMetadata("ClippyAssist", "Version") .. ".")
+		print("It looks like you're trying to use Clippy Assist. " .. 
+			"Would you like some help with that?")
+		print("  -help: Shows this text.")
+		print("  -hide: Temporarily hide Clippy. :c")
+		print("  -show: Show Clippy again. :D")
+		print("  -reset: Resets Clippy's position.")
+		print("  -list: Lists all available animations.")
+		print("  everything else: Attempts to play that animation.")
+	elseif msg == "-hide" then
+		frame:Hide()
+	elseif msg == "-show" then
+		frame:Show()
+	elseif msg == "-reset" or msg == "-r" then
+		frame:ClearAllPoints()
+		frame:SetPoint("CENTER")
+	elseif msg == "-list" or msg == "-l" then
+	else
+		if data.msg == nil then
+			print("Couldn't find that animation.")
+			print("Use \"/clippy -list\" to list available animations.")
+			print("Use \"/clippy -help\" to view all commands.")
+		else
+			QueueAnimation(msg)
+		end
+	end
 end
