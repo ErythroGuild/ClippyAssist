@@ -158,3 +158,11 @@ function ClippyFrame.events:PLAYER_STARTED_MOVING()
 		QueueAnimation("GetArtsy")
 	end
 end
+
+--------------------
+-- Slash Commands --
+--------------------
+SLASH_CLIPPY1 = "/clippy"
+function SlashCmdList.CLIPPY(msg, editBox)
+	QueueAnimation(msg)	-- no error checking!
+end
