@@ -187,6 +187,8 @@ function SlashCmdList.CLIPPY(msg, editBox)
 	elseif msg == "-show" then
 		frame:Show()
 	elseif msg == "-reset" or msg == "-r" then
+		frame:ClearAllPoints()
+		frame:SetPoint("CENTER")
 	elseif msg == "-list" or msg == "-l" then
 	else
 		if data.msg == nil then
