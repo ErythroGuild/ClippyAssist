@@ -1,3 +1,7 @@
+# Release files
+ClippyAssist-v*.7z
+ClippyAssist-v*.zip
+
 # Exported/Converted files
 convert/*.gif
 convert/*.png
