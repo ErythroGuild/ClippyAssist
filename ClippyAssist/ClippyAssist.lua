@@ -118,7 +118,7 @@ end)
 
 -- Idle: 10% GetArtsy, 10% Print, 20% GetAttention, 60% Look{direction}
 local function AnimateIdle()
-	local delay = math.random(10, 25)
+	local delay = math.random(20, 45)
 	C_Timer.After(delay, function()
 		local chance = math.random()
 		if chance < 0.10 then
