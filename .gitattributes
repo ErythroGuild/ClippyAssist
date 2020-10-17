@@ -1,10 +1,10 @@
 ## Include overrides
 
 # WoW .toc
-EasyRollTracker/*.toc linguist-detectable
+ClippyAssist/*.toc linguist-detectable
 
 # WoW UI XML
-EasyRollTracker/*.xml linguist-detectable
+ClippyAssist/*.xml linguist-detectable
 
 ## Vendored code
 
@@ -12,7 +12,7 @@ EasyRollTracker/*.xml linguist-detectable
 FrameXML/* linguist-vendored
 
 # External addon libraries
-EasyRollTracker/Libs/* linguist-vendored
+ClippyAssist/Libs/* linguist-vendored
 
 # Clippy.js
 raw/* linuist-vendored
