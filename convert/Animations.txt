@@ -4,6 +4,7 @@
 + : Extracted (frames)
 > : Compiled (texture map)
 X : Completed
+* : Has Issues
 
 ----------------
 
