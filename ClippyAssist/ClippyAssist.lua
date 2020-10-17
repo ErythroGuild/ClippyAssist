@@ -251,7 +251,7 @@ end
 
 -- SendMail
 frame:RegisterEvent("MAIL_SEND_SUCCESS")
-function frame.events:MAIL_SEND_SUCCESS()	QueueAnimation("SendMail")
+function frame.events:MAIL_SEND_SUCCESS()	QueueAnimation("SendMail") end
 -- trade complete
 
 -- Show
