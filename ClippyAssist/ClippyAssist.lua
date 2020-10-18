@@ -325,6 +325,15 @@ function SlashCmdList.CLIPPY(msg, editBox)
 		frame:ClearAllPoints()
 		frame:SetPoint("CENTER")
 	elseif msg == "-list" or msg == "-l" then
+		print("Clippy's available animations:")
+		local display = {}
+		for i,_ in pairs(data) do
+			table.insert(display, i)
+		end
+		table.sort(display)
+		for _,name in ipairs(display) do
+			print("  " .. name)
+		end
 	else
 		if data.msg == nil then
 			print("Couldn't find that animation.")
