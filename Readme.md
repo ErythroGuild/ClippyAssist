@@ -18,4 +18,4 @@ The addon has a number of slash commands, which can be viewed by typing
 [1]: https://www.curseforge.com/wow/addons/clippy-assist
 [2]: https://github.com/ErythroGuild/ClippyAssist/releases/latest
 [3]: https://www.curseforge.com/wow/addons/clippy-assist/screenshots
-[4]: https://imgur.com/a/vpyHQpx
+[4]: https://imgur.com/a/I6QzlrW
