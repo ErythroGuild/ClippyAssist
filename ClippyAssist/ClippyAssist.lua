@@ -275,14 +275,19 @@ function frame.events:START_TIMER(timerType, timeRemaining, totalTime)
 		x_frame = x_frame - x_mid
 		y_frame = y_frame - y_mid
 		local theta = atan2(y_frame, x_frame)
-		if     theta >  -22.5 and theta <=   22.5 then QueueAnimation("GestureRight2");		QueueAnimation("LookRight")
-		elseif theta >   22.5 and theta <=   67.5 then QueueAnimation("GestureDownRight2");	QueueAnimation("LookDownRight")
-		elseif theta >   67.5 and theta <=  112.5 then QueueAnimation("GestureDown2");		QueueAnimation("LookDown")
-		elseif theta >  112.5 and theta <=  157.5 then QueueAnimation("GestureDownLeft2");	QueueAnimation("LookDownLeft")
-		elseif theta >  157.5 and theta <= -157.5 then QueueAnimation("GestureLeft2");		QueueAnimation("LookLeft")
-		elseif theta > -157.5 and theta <= -112.5 then QueueAnimation("GestureUpLeft2");	QueueAnimation("LookUpLeft")
-		elseif theta > -112.5 and theta <=  -67.5 then QueueAnimation("GestureUp2");		QueueAnimation("LookUp")
-		elseif theta >  -67.5 and theta <=  -22.5 then QueueAnimation("GestureUpRight2");	QueueAnimation("LookUpRight")
+		if     theta >  -45 and theta <=   45 then QueueAnimation("GestureRight2")
+		elseif theta >   45 and theta <=  135 then QueueAnimation("GestureDown2")
+		elseif theta >  135 or  theta <= -135 then QueueAnimation("GestureLeft2")
+		elseif theta > -135 and theta <=  -45 then QueueAnimation("GestureUp2")
+		end
+		if     theta >  -22.5 and theta <=   22.5 then QueueAnimation("LookRight")
+		elseif theta >   22.5 and theta <=   67.5 then QueueAnimation("LookDownRight")
+		elseif theta >   67.5 and theta <=  112.5 then QueueAnimation("LookDown")
+		elseif theta >  112.5 and theta <=  157.5 then QueueAnimation("LookDownLeft")
+		elseif theta >  157.5 and theta <= -157.5 then QueueAnimation("LookLeft")
+		elseif theta > -157.5 and theta <= -112.5 then QueueAnimation("LookUpLeft")
+		elseif theta > -112.5 and theta <=  -67.5 then QueueAnimation("LookUp")
+		elseif theta >  -67.5 and theta <=  -22.5 then QueueAnimation("LookUpRight")
 		end
 	end
 end
