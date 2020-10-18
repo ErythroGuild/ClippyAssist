@@ -223,17 +223,19 @@ end
 
 -- Greeting
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-function frame.events:PLAYER_ENTERING_WORLD(...)
-	C_Timer.After(5.0, function()
-		if (math.random() < 0.40) then
-			QueueAnimation("Greeting1")
-		else
-			QueueAnimation("Greeting2")
-		end
-		frame.texture.frame = nil
-		frame:Show()
-		AnimateIdle()
-	end)
+function frame.events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
+	if isInitialLogin or isReloadingUi then
+		C_Timer.After(5.0, function()
+			if (math.random() < 0.40) then
+				QueueAnimation("Greeting1")
+			else
+				QueueAnimation("Greeting2")
+			end
+			frame.texture.frame = nil
+			frame:Show()
+			AnimateIdle()
+		end)
+	end
 end
 
 -- Hide
