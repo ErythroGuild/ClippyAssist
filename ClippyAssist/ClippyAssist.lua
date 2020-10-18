@@ -61,21 +61,31 @@ frame:SetSize(124, 93)
 frame:SetPoint("CENTER")
 frame:SetFrameStrata("HIGH")
 
+local texture = frame:CreateTexture(nil, "OVERLAY")
+frame.texture = texture
+texture:SetAllPoints("ClippyFrame")
+
+frame:EnableMouse(true)
+frame:SetMovable(true)
+frame:SetClampedToScreen(true)
+frame:RegisterForDrag("LeftButton")
+frame:SetScript("OnMouseUp", function(self, button)
+	QueueAnimation("Wave1")
+end)
+frame:SetScript("OnDragStart", function(self, button)
+	self:StartMoving()
+	QueueAnimation("Wave2")
+end)
+frame:SetScript("OnDragStop", function(self)
+	self:StopMovingOrSizing()
+end)
+
 ClippyFrame.events = {}
 function ClippyFrame_OnEvent(self, event, ...)
 	ClippyFrame.events[event](self, ...)
 end
 frame:SetScript("OnEvent", ClippyFrame_OnEvent)
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("PLAYER_STOPPED_MOVING")
-frame:RegisterEvent("PLAYER_ENTER_COMBAT")
-frame:RegisterEvent("PLAYER_LEAVE_COMBAT")
-frame:RegisterEvent("PLAYER_DEAD")
-frame:RegisterEvent("PLAYER_STARTED_MOVING")
 
-local texture = frame:CreateTexture(nil, "OVERLAY")
-frame.texture = texture
-texture:SetAllPoints("ClippyFrame")
 frame:SetScript("OnUpdate", function(self, elapsed)
 	local animation = animation_queue[1]
 	local frame_duration
@@ -104,64 +114,184 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 	end
 end)
 
-frame:EnableMouse(true)
-frame:SetMovable(true)
-frame:SetClampedToScreen(true)
-frame:RegisterForDrag("LeftButton")
-frame:SetScript("OnMouseUp", function(self, button)
-	QueueAnimation("Wave1")
-end)
-frame:SetScript("OnDragStart", function(self, button)
-	self:StartMoving()
-	QueueAnimation("Wave2")
-end)
-frame:SetScript("OnDragStop", function(self)
-	self:StopMovingOrSizing()
-end)
+-- Events
 
---------------------
--- Event Handlers --
---------------------
-
-function ClippyFrame.events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
-	C_Timer.After(5.0, function()
-		QueueAnimation("Greeting2")
-		ClippyFrame.texture.frame = nil
-		ClippyFrame:Show()
+-- Idle: 10% GetArtsy, 10% Print, 20% GetAttention, 60% Look{direction}
+local function AnimateIdle()
+	local delay = math.random(20, 30)
+	C_Timer.After(delay, function()
+		local chance = math.random()
+		if chance < 0.10 then
+			QueueAnimation("GetArtsy")
+		elseif chance < 0.20 then
+			QueueAnimation("Print")
+		elseif chance < 0.40 then
+			QueueAnimation("GetAttention")
+		else
+			chance = math.random(1, 8)
+			if     chance == 1 then QueueAnimation("LookUp")
+			elseif chance == 2 then QueueAnimation("LookUpRight")
+			elseif chance == 3 then QueueAnimation("LookRight")
+			elseif chance == 4 then QueueAnimation("LookDownRight")
+			elseif chance == 5 then QueueAnimation("LookDown")
+			elseif chance == 6 then QueueAnimation("LookDownLeft")
+			elseif chance == 7 then QueueAnimation("LookLeft")
+			elseif chance == 8 then QueueAnimation("LookUpLeft")
+			end
+		end
+		AnimateIdle()
 	end)
 end
 
-function ClippyFrame.events:PLAYER_STOPPED_MOVING()
-	local chance = math.random()
-	if chance < 0.15 then
+-- Alert
+frame:RegisterEvent("CHAT_MSG_RAID_WARNING")
+frame:RegisterEvent("READY_CHECK")
+frame:RegisterEvent("ROLE_POLL_BEGIN")
+function frame.events:CHAT_MSG_RAID_WARNING(...) QueueAnimation("Alert") end
+function frame.events:READY_CHECK(...)		QueueAnimation("Alert") end
+function frame.events:ROLE_POLL_BEGIN(...)	QueueAnimation("Alert") end
+-- paragon chest complete
+-- received zone quest (legion/bfa assaults)
+
+-- CheckingSomething
+-- encounter journal open
+-- reading TRP/MRP
+
+-- Congratulate
+frame:RegisterEvent("BOSS_KILL")
+frame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+frame:RegisterEvent("QUEST_TURNED_IN")
+frame:RegisterEvent("ISLAND_COMPLETED")
+frame:RegisterEvent("WARFRONT_COMPLETED")
+frame:RegisterEvent("ACHIEVEMENT_EARNED")
+frame:RegisterEvent("PLAYER_LEVEL_UP")
+frame:RegisterEvent("PLAYER_UNGHOST")
+frame:RegisterEvent("PLAYER_ALIVE")
+frame:RegisterEvent("DUEL_FINISHED")
+frame:RegisterEvent("NEW_MOUNT_ADDED")
+frame:RegisterEvent("NEW_PET_ADDED")
+frame:RegisterEvent("NEW_TOY_ADDED")
+frame:RegisterEvent("BARBER_SHOP_APPEARANCE_APPLIED")
+function frame.events:BOSS_KILL(...)			QueueAnimation("Congratulate") end
+function frame.events:CHALLENGE_MODE_COMPLETED() QueueAnimation("Congratulate") end
+function frame.events:QUEST_TURNED_IN(...)		QueueAnimation("Congratulate") end
+function frame.events:ISLAND_COMPLETED(...)		QueueAnimation("Congratulate") end
+function frame.events:WARFRONT_COMPLETED(...)	QueueAnimation("Congratulate") end
+function frame.events:ACHIEVEMENT_EARNED(...)	QueueAnimation("Congratulate") end
+function frame.events:PLAYER_LEVEL_UP(...)		QueueAnimation("Congratulate") end
+function frame.events:PLAYER_UNGHOST()			QueueAnimation("Congratulate") end
+function frame.events:PLAYER_ALIVE()
+	if (not UnitIsDeadOrGhost("player")) then QueueAnimation("Congratulate") end
+end
+function frame.events:DUEL_FINISHED()			QueueAnimation("Congratulate") end
+function frame.events:NEW_MOUNT_ADDED(...)		QueueAnimation("Congratulate") end
+function frame.events:NEW_PET_ADDED(...)		QueueAnimation("Congratulate") end
+function frame.events:NEW_TOY_ADDED(...)		QueueAnimation("Congratulate") end
+function frame.events:BARBER_SHOP_APPEARANCE_APPLIED() QueueAnimation("Congratulate") end
+-- rare elite killed
+-- received AH mail
+-- reached reputation level
+-- crafting complete
+-- new appearance set
+-- all battlepets healed
+
+-- EmptyTrash
+frame:RegisterEvent("PLAYER_DEAD")
+frame:RegisterEvent("ENCOUNTER_END")
+frame:RegisterEvent("DELETE_ITEM_CONFIRM")
+function frame.events:PLAYER_DEAD()				QueueAnimation("EmptyTrash") end
+function frame.events:ENCOUNTER_END(encounterID, encounterName, difficultyID, groupSize, success)
+	if success == 0 then QueueAnimation("EmptyTrash") end
+end
+function frame.events:DELETE_ITEM_CONFIRM(...)	QueueAnimation("EmptyTrash") end
+-- key failed
+-- duel lost
+
+-- Explain
+-- weakaura speech bubble (while idle)
+
+-- GetAttention
+frame:RegisterEvent("PLAYER_FLAGS_CHANGED")
+function frame.events:PLAYER_FLAGS_CHANGED(unitTarget)
+	if unitTarget == "player" and UnitIsAFK("player") then QueueAnimation("GetAttention") end
+end
+-- afk logout starts
+
+-- GoodBye
+-- casting hearth
+-- casting teleport
+
+-- Greeting
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+function frame.events:PLAYER_ENTERING_WORLD(...)
+	C_Timer.After(5.0, function()
+		if (math.random() < 0.40) then
+			QueueAnimation("Greeting1")
+		else
+			QueueAnimation("Greeting2")
+		end
+		frame.texture.frame = nil
+		frame:Show()
+		AnimateIdle()
+	end)
+end
+
+-- Hide
+-- cast invisibility
+-- cast stealth
+
+-- Print
+-- export weakaura
+
+-- Processing
+-- viewing LFG applicants
+
+-- Searching
+-- viewing LFG groups
+
+-- SendMail
+frame:RegisterEvent("MAIL_SEND_SUCCESS")
+function frame.events:MAIL_SEND_SUCCESS()	QueueAnimation("SendMail") end
+-- trade complete
+
+-- Show
+-- exit invisibility
+-- exit stealth
+-- cancel logout
+
+-- Aggro drop (e.g. fade, feign death)
+-- 1. Hide
+-- 2. Show
+
+-- Pull timer
+frame:RegisterEvent("START_TIMER")
+function frame.events:START_TIMER(timerType, timeRemaining, totalTime)
+	if timerType == 3 then
+		QueueAnimation("Alert")
 		QueueAnimation("GetAttention")
+		local x_mid = GetScreenWidth() / 2
+		local y_mid = GetScreenHeight() / 2
+		local x_frame, y_frame = frame:GetCenter()
+		x_frame = x_frame - x_mid
+		y_frame = y_frame - y_mid
+		local theta = atan2(y_frame, x_frame)
+		if     theta >  -22.5 and theta <=   22.5 then QueueAnimation("GestureRight2");		QueueAnimation("LookRight")
+		elseif theta >   22.5 and theta <=   67.5 then QueueAnimation("GestureDownRight2");	QueueAnimation("LookDownRight")
+		elseif theta >   67.5 and theta <=  112.5 then QueueAnimation("GestureDown2");		QueueAnimation("LookDown")
+		elseif theta >  112.5 and theta <=  157.5 then QueueAnimation("GestureDownLeft2");	QueueAnimation("LookDownLeft")
+		elseif theta >  157.5 and theta <= -157.5 then QueueAnimation("GestureLeft2");		QueueAnimation("LookLeft")
+		elseif theta > -157.5 and theta <= -112.5 then QueueAnimation("GestureUpLeft2");	QueueAnimation("LookUpLeft")
+		elseif theta > -112.5 and theta <=  -67.5 then QueueAnimation("GestureUp2");		QueueAnimation("LookUp")
+		elseif theta >  -67.5 and theta <=  -22.5 then QueueAnimation("GestureUpRight2");	QueueAnimation("LookUpRight")
+		end
 	end
 end
 
-function ClippyFrame.events:PLAYER_ENTER_COMBAT()
-	local chance = math.random()
-	if chance < 0.60 then
-		QueueAnimation("LookDown")
-	end
-end
-
-function ClippyFrame.events:PLAYER_LEAVE_COMBAT()
-	local chance = math.random()
-	if chance < 0.20 then
-		QueueAnimation("Congratulate")
-	end
-end
-
-function ClippyFrame.events:PLAYER_DEAD()
-	QueueAnimation("EmptyTrash")
-end
-
-function ClippyFrame.events:PLAYER_STARTED_MOVING()
-	local chance = math.random()
-	if chance < 0.05 then
-		QueueAnimation("GetArtsy")
-	end
-end
+-- Log out (timer)
+-- 1. Wave1
+-- 2. Save
+-- 3. Print
+-- 4. GoodBye
 
 --------------------
 -- Slash Commands --
