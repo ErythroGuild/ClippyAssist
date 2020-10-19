@@ -429,7 +429,7 @@ function SlashCmdList.CLIPPY(msg, editBox)
 			print("  " .. name)
 		end
 	else
-		if data.msg == nil then
+		if data[msg] == nil then
 			print("Couldn't find that animation.")
 			print("Use \"/clippy -list\" to list available animations.")
 			print("Use \"/clippy -help\" to view all commands.")
