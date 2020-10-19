@@ -2,6 +2,7 @@ local data = ClippyAssist.data
 
 local animation_queue = {}
 local animation_needs_init = true
+local is_frame_ready = false
 
 ---------------------------
 -- Convenience Functions --
@@ -43,6 +44,20 @@ local function IdleAnimation(animation)
 	then
 		SingleAnimation(animation)
 	end
+end
+
+-------------------------------
+-- Custom WeakAura Interface --
+-------------------------------
+
+-- Check that Clippy is initialized before attempting to use addon.
+function ClippyAssist.isReady()
+	return is_frame_ready
+end
+
+-- Display a speech bubble for the specified duration.
+function ClippyAssist.SetText(msg, duration)
+	IdleAnimation("Explain")
 end
 
 -------------------------
@@ -205,6 +220,9 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 		elapsed)
 
 	end)
+
+-- Enable custom WeakAura support.
+is_frame_ready = true
 
 ------------
 -- Events --
@@ -429,6 +447,7 @@ function SlashCmdList.CLIPPY(msg, editBox)
 			print("  " .. name)
 		end
 	else
+		-- `data.msg == nil` doesn't work for some reason...
 		if data[msg] == nil then
 			print("Couldn't find that animation.")
 			print("Use \"/clippy -list\" to list available animations.")
