@@ -7,6 +7,13 @@ good friend.
 The addon has a number of slash commands, which can be viewed by typing
 `/clippy -help`.
 
+- `/clippy -help`: Lists all commands.
+- `/clippy -hide`: Temporarily hide Clippy.
+- `/clippy -show`: Show Clippy (if hidden).
+- `/clippy -reset`: Resets Clippy's position.
+- `/clippy -list`: Lists all available animations.
+- `/clippy `{everything else}: Attempts to play that animation.
+
 *The project can be found on CurseForge [here][1].*
 
 *Download the latest release from GitHub [here][2].*
