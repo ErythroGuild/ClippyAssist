@@ -125,9 +125,6 @@ local function AnimateTexCoords(texture, animation, elapsed)
 	if not texture.isSet then
 		texture:SetTexture(animation.path)
 		texture.isSet = true
-		if not ClippyFrame:IsShown() then
-			ClippyFrame:Show()
-		end
 	end
 end
 
@@ -143,6 +140,7 @@ frame:SetFrameStrata("HIGH")
 local texture = frame:CreateTexture(nil, "OVERLAY")
 frame.texture = texture
 texture:SetAllPoints("ClippyFrame")
+frame:Show()
 
 frame:EnableMouse(true)
 frame:SetMovable(true)
@@ -184,7 +182,7 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 					table.remove(animation_queue, 1)
 				end
 				if #(animation_queue) == 0 then
-					frame:Hide()
+					frame.texture:SetTexture(nil)
 				end
 			end)
 	end
