@@ -2,6 +2,8 @@ local data = ClippyAssist.data
 
 local animation_queue = {}
 local animation_needs_init = true
+local is_frame_ready = false
+local time_hide_text = GetTime()
 
 ---------------------------
 -- Convenience Functions --
@@ -66,8 +68,8 @@ local function InitTexCoords(
 	texture.frame = 1
 	texture.elapsed = 0
 
-	texture.cols = floor(animation.tex_width / frameWidth)
-	texture.rows = floor(animation.tex_height / frameHeight)
+	texture.cols = math.floor(animation.tex_width / frameWidth)
+	texture.rows = math.floor(animation.tex_height / frameHeight)
 
 	-- Setting tex coords bases dimensions off of the parent's
 	-- UV-coords, where max (width, height) is (1, 1).
@@ -120,7 +122,7 @@ local function AnimateTexCoords(texture, animation, elapsed)
 	-- require an extra check.
 	local left = ((texture.frame - 1) % texture.cols) * texture.w_col
 	local right = left + texture.w_col
-	local bottom = ceil(texture.frame / texture.cols) * texture.h_row
+	local bottom = math.ceil(texture.frame / texture.cols) * texture.h_row
 	local top = bottom - texture.h_row
 	texture:SetTexCoord(left, right, top, bottom)
 
@@ -165,6 +167,7 @@ frame:SetScript("OnDragStart", function(self, button)
 end)
 frame:SetScript("OnDragStop", function(self)
 	self:StopMovingOrSizing()
+	ClippyAssist.PositionBalloon()
 end)
 
 -- Set up syntactic sugar for handling all events.
@@ -205,6 +208,170 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 		elapsed)
 
 	end)
+
+------------------
+-- Text Balloon --
+------------------
+
+-- Set up text balloon frame.
+local path_balloon_texture = "Interface/AddOns/ClippyAssist/rc/balloon.tga"
+local balloon_corner_size = 15
+local balloon = CreateFrame("Frame", "ClippyBalloon", frame)
+balloon:Hide()
+balloon:SetSize(180, 260)
+balloon:SetPoint("CENTER")
+balloon:SetFrameStrata("HIGH")
+
+-- Corner pieces.
+local balloon_slice_TL = balloon:CreateTexture()
+balloon_slice_TL:SetPoint("TOPLEFT")
+balloon_slice_TL:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_TL:SetTexCoord(0.0, 0.3, 0.0, 0.3)
+balloon_slice_TL:SetTexture(path_balloon_texture)
+
+local balloon_slice_TR = balloon:CreateTexture()
+balloon_slice_TR:SetPoint("TOPRIGHT")
+balloon_slice_TR:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_TR:SetTexCoord(0.7, 1.0, 0.0, 0.3)
+balloon_slice_TR:SetTexture(path_balloon_texture)
+
+local balloon_slice_BL = balloon:CreateTexture()
+balloon_slice_BL:SetPoint("BOTTOMLEFT")
+balloon_slice_BL:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_BL:SetTexCoord(0.0, 0.3, 0.7, 1.0)
+balloon_slice_BL:SetTexture(path_balloon_texture)
+
+local balloon_slice_BR = balloon:CreateTexture()
+balloon_slice_BR:SetPoint("BOTTOMRIGHT")
+balloon_slice_BR:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_BR:SetTexCoord(0.7, 1.0, 0.7, 1.0)
+balloon_slice_BR:SetTexture(path_balloon_texture)
+
+-- Edge pieces.
+local balloon_slice_T = balloon:CreateTexture()
+balloon_slice_T:SetPoint("TOPLEFT", balloon_slice_TL, "TOPRIGHT")
+balloon_slice_T:SetPoint("BOTTOMRIGHT", balloon_slice_TR, "BOTTOMLEFT")
+balloon_slice_T:SetTexCoord(0.3, 0.4, 0.0, 0.3)
+balloon_slice_T:SetTexture(path_balloon_texture)
+
+local balloon_slice_L = balloon:CreateTexture()
+balloon_slice_L:SetPoint("TOPLEFT", balloon_slice_TL, "BOTTOMLEFT")
+balloon_slice_L:SetPoint("BOTTOMRIGHT", balloon_slice_BL, "TOPRIGHT")
+balloon_slice_L:SetTexCoord(0.0, 0.3, 0.3, 0.4)
+balloon_slice_L:SetTexture(path_balloon_texture)
+
+local balloon_slice_R = balloon:CreateTexture()
+balloon_slice_R:SetPoint("TOPLEFT", balloon_slice_TR, "BOTTOMLEFT")
+balloon_slice_R:SetPoint("BOTTOMRIGHT", balloon_slice_BR, "TOPRIGHT")
+balloon_slice_R:SetTexCoord(0.7, 1.0, 0.3, 0.4)
+balloon_slice_R:SetTexture(path_balloon_texture)
+
+local balloon_slice_B = balloon:CreateTexture()
+balloon_slice_B:SetPoint("TOPLEFT", balloon_slice_BL, "TOPRIGHT")
+balloon_slice_B:SetPoint("BOTTOMRIGHT", balloon_slice_BR, "BOTTOMLEFT")
+balloon_slice_B:SetTexCoord(0.3, 0.4, 0.7, 1.0)
+balloon_slice_B:SetTexture(path_balloon_texture)
+
+-- Center piece.
+local balloon_slice_C = balloon:CreateTexture()
+balloon_slice_C:SetPoint("TOPLEFT", balloon_slice_TL, "BOTTOMRIGHT")
+balloon_slice_C:SetPoint("BOTTOMRIGHT", balloon_slice_BR, "TOPLEFT")
+balloon_slice_C:SetTexCoord(0.3, 0.3, 0.4, 0.4)
+balloon_slice_C:SetTexture(path_balloon_texture)
+
+-- Text texture.
+balloon.text = balloon:CreateFontString(nil, "OVERLAY")
+balloon.text:SetFont("Interface/AddOns/ClippyAssist/rc/ClippySans.ttf", 14)
+balloon.text:SetTextColor(0, 0, 0)
+balloon.text:SetJustifyH("LEFT")
+balloon.text:SetJustifyV("TOP")
+balloon.text:SetPoint("TOPLEFT", balloon_slice_C, "TOPLEFT")
+balloon.text:SetWidth(balloon_slice_C:GetWidth())
+balloon.text:SetText("")
+
+-- Balloon tip frame.
+local path_balloon_tip_texture = "Interface/AddOns/ClippyAssist/rc/tip.tga"
+local balloon_tip_size = 20
+local balloon_tip = CreateFrame("Frame", "BalloonTip", balloon)
+balloon_tip:SetSize(balloon_tip_size, balloon_tip_size)
+balloon_tip:SetFrameStrata("HIGH")
+local balloon_texture = balloon_tip:CreateTexture()
+balloon_texture:SetAllPoints()
+balloon_texture:SetTexture(path_balloon_tip_texture)
+
+-- Positioning convenience function.
+ClippyAssist.PositionBalloon = function()
+	local x_mid = GetScreenWidth() / 2
+	local y_mid = GetScreenHeight() / 2
+	local x_frame, y_frame = frame:GetCenter()
+	x_frame = x_frame - x_mid
+	y_frame = y_frame - y_mid
+
+	balloon:ClearAllPoints()
+	if     x_frame >= 0 and y_frame >= 0 then
+		balloon:SetPoint("TOPRIGHT", frame, "BOTTOMLEFT", 100, -10)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("BOTTOMLEFT", balloon, "TOP", -15, -2)
+		balloon_texture:SetTexCoord(0.5, 1.0, 0.0, 0.5)
+	elseif x_frame >= 0 and y_frame <  0 then
+		balloon:SetPoint("BOTTOMRIGHT", frame, "TOPLEFT", 80, 5)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("TOPLEFT", balloon, "BOTTOM", 25, 2)
+		balloon_texture:SetTexCoord(0.5, 1.0, 0.5, 1.0)
+	elseif x_frame <  0 and y_frame <  0 then
+		balloon:SetPoint("BOTTOMLEFT", frame, "TOPRIGHT", -60, 5)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("TOPRIGHT", balloon, "BOTTOM", -20, 2)
+		balloon_texture:SetTexCoord(0.0, 0.5, 0.5, 1.0)
+	else --x_frame <  0 and y_frame >= 0
+		balloon:SetPoint("TOPLEFT", frame, "BOTTOMRIGHT", -80, -10)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("BOTTOMRIGHT", balloon, "TOP", -10, -2)
+		balloon_texture:SetTexCoord(0.0, 0.5, 0.0, 0.5)
+	end
+end
+
+-- Enable custom WeakAura support.
+is_frame_ready = true
+
+-------------------------------
+-- Custom WeakAura Interface --
+-------------------------------
+
+-- Check that Clippy is initialized before attempting to use addon.
+function ClippyAssist.isReady()
+	return is_frame_ready
+end
+
+-- Display a speech bubble for the specified duration.
+function ClippyAssist.SetText(msg, duration)
+	balloon.text:SetText(msg)
+
+	-- Resize balloon to fit text.
+	balloon:SetHeight(
+		balloon.text:GetHeight() +
+		balloon.text:GetLineHeight() +
+		2 * balloon_corner_size
+	)
+
+	-- Position balloon depending on Clippy's location.
+	ClippyAssist.PositionBalloon()
+
+	-- Display balloon.
+	balloon:Show()
+	IdleAnimation("Explain")
+
+	-- Set up hiding for balloon.
+	time_hide_text = GetTime() + duration
+	C_Timer.After(duration, function()
+		print("current time: " .. GetTime())
+		print("hide time: " .. time_hide_text)
+		if GetTime() > time_hide_text then
+			balloon:Hide()
+			balloon.text:SetText("")
+		end
+	end)
+end
 
 ------------
 -- Events --
@@ -429,6 +596,7 @@ function SlashCmdList.CLIPPY(msg, editBox)
 			print("  " .. name)
 		end
 	else
+		-- `data.msg == nil` doesn't work for some reason...
 		if data[msg] == nil then
 			print("Couldn't find that animation.")
 			print("Use \"/clippy -list\" to list available animations.")

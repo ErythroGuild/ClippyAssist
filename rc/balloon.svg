@@ -7,41 +7,41 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
-   id="svg8"
-   version="1.1"
-   viewBox="0 0 16.933333 16.933333"
-   height="64"
-   width="64"
-   sodipodi:docname="balloon.svg"
-   inkscape:export-filename="balloon.png"
+   inkscape:export-ydpi="96"
    inkscape:export-xdpi="96"
-   inkscape:export-ydpi="96">
+   inkscape:export-filename="balloon.png"
+   sodipodi:docname="balloon.svg"
+   width="64"
+   height="64"
+   viewBox="0 0 16.933333 16.933333"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
   <defs
      id="defs2" />
   <sodipodi:namedview
-     borderlayer="true"
-     inkscape:showpageshadow="false"
-     inkscape:pagecheckerboard="true"
-     width="100px"
-     units="px"
-     inkscape:snap-global="true"
-     inkscape:snap-bbox="true"
-     showgrid="false"
-     inkscape:document-rotation="0"
-     inkscape:current-layer="layer1"
-     inkscape:document-units="px"
-     inkscape:cy="560"
-     inkscape:cx="400"
-     inkscape:zoom="0.35"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0.0"
-     borderopacity="1.0"
-     bordercolor="#666666"
-     pagecolor="#ffffff"
-     id="base"
+     inkscape:snap-page="true"
      inkscape:bbox-nodes="true"
-     inkscape:snap-page="true" />
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="400"
+     inkscape:cy="560"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:snap-bbox="true"
+     inkscape:snap-global="true"
+     units="px"
+     width="100px"
+     inkscape:pagecheckerboard="true"
+     inkscape:showpageshadow="false"
+     borderlayer="true" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -55,18 +55,18 @@
     </rdf:RDF>
   </metadata>
   <g
-     id="layer1"
+     inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     inkscape:label="Layer 1">
+     id="layer1">
     <rect
-       style="color:#000000;overflow:visible;fill:#ffffcc;fill-opacity:1;stroke:#000000;stroke-width:0.79375;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="balloon"
-       width="16.139584"
-       height="16.139584"
-       x="0.39687502"
-       y="0.39687502"
+       ry="4.0317459"
        rx="0"
-       ry="3.96875" />
+       y="0.26878279"
+       x="0.268783"
+       height="16.395767"
+       width="16.395767"
+       id="balloon"
+       style="color:#000000;overflow:visible;fill:#ffffcc;fill-opacity:1;stroke:#000000;stroke-width:0.537566;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
   </g>
   <inkscape:templateinfo>
     <inkscape:name>square-icon-100px</inkscape:name>
