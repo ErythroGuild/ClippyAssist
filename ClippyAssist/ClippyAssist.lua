@@ -221,6 +221,93 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 
 	end)
 
+------------------
+-- Text Balloon --
+------------------
+
+-- Set up text balloon frame.
+local path_balloon_texture = "Interface/AddOns/ClippyAssist/rc/balloon.tga"
+local balloon_corner_size = 15
+local balloon = CreateFrame("Frame", "ClippyBalloon", frame)
+balloon:Hide()
+balloon:SetSize(180, 260)
+balloon:SetPoint("BOTTOMRIGHT", frame, "TOPLEFT")
+balloon:SetFrameStrata("HIGH")
+
+-- Corner pieces.
+local balloon_slice_TL = balloon:CreateTexture()
+balloon_slice_TL:SetPoint("TOPLEFT")
+balloon_slice_TL:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_TL:SetTexCoord(0.0, 0.3, 0.0, 0.3)
+balloon_slice_TL:SetTexture(path_balloon_texture)
+
+local balloon_slice_TR = balloon:CreateTexture()
+balloon_slice_TR:SetPoint("TOPRIGHT")
+balloon_slice_TR:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_TR:SetTexCoord(0.7, 1.0, 0.0, 0.3)
+balloon_slice_TR:SetTexture(path_balloon_texture)
+
+local balloon_slice_BL = balloon:CreateTexture()
+balloon_slice_BL:SetPoint("BOTTOMLEFT")
+balloon_slice_BL:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_BL:SetTexCoord(0.0, 0.3, 0.7, 1.0)
+balloon_slice_BL:SetTexture(path_balloon_texture)
+
+local balloon_slice_BR = balloon:CreateTexture()
+balloon_slice_BR:SetPoint("BOTTOMRIGHT")
+balloon_slice_BR:SetSize(balloon_corner_size, balloon_corner_size)
+balloon_slice_BR:SetTexCoord(0.7, 1.0, 0.7, 1.0)
+balloon_slice_BR:SetTexture(path_balloon_texture)
+
+-- Edge pieces.
+local balloon_slice_T = balloon:CreateTexture()
+balloon_slice_T:SetPoint("TOPLEFT", balloon_slice_TL, "TOPRIGHT")
+balloon_slice_T:SetPoint("BOTTOMRIGHT", balloon_slice_TR, "BOTTOMLEFT")
+balloon_slice_T:SetTexCoord(0.3, 0.4, 0.0, 0.3)
+balloon_slice_T:SetTexture(path_balloon_texture)
+
+local balloon_slice_L = balloon:CreateTexture()
+balloon_slice_L:SetPoint("TOPLEFT", balloon_slice_TL, "BOTTOMLEFT")
+balloon_slice_L:SetPoint("BOTTOMRIGHT", balloon_slice_BL, "TOPRIGHT")
+balloon_slice_L:SetTexCoord(0.0, 0.3, 0.3, 0.4)
+balloon_slice_L:SetTexture(path_balloon_texture)
+
+local balloon_slice_R = balloon:CreateTexture()
+balloon_slice_R:SetPoint("TOPLEFT", balloon_slice_TR, "BOTTOMLEFT")
+balloon_slice_R:SetPoint("BOTTOMRIGHT", balloon_slice_BR, "TOPRIGHT")
+balloon_slice_R:SetTexCoord(0.7, 1.0, 0.3, 0.4)
+balloon_slice_R:SetTexture(path_balloon_texture)
+
+local balloon_slice_B = balloon:CreateTexture()
+balloon_slice_B:SetPoint("TOPLEFT", balloon_slice_BL, "TOPRIGHT")
+balloon_slice_B:SetPoint("BOTTOMRIGHT", balloon_slice_BR, "BOTTOMLEFT")
+balloon_slice_B:SetTexCoord(0.3, 0.4, 0.7, 1.0)
+balloon_slice_B:SetTexture(path_balloon_texture)
+
+-- Center piece.
+local balloon_slice_C = balloon:CreateTexture()
+balloon_slice_C:SetPoint("TOPLEFT", balloon_slice_TL, "BOTTOMRIGHT")
+balloon_slice_C:SetPoint("BOTTOMRIGHT", balloon_slice_BR, "TOPLEFT")
+balloon_slice_C:SetTexCoord(0.3, 0.3, 0.4, 0.4)
+balloon_slice_C:SetTexture(path_balloon_texture)
+
+-- Text texture.
+balloon.text = balloon:CreateFontString(nil, "OVERLAY")
+balloon.text:SetFont("Interface/AddOns/ClippyAssist/rc/ClippySans.ttf", 14)
+balloon.text:SetTextColor(0, 0, 0)
+balloon.text:SetJustifyH("LEFT")
+balloon.text:SetJustifyV("TOP")
+balloon.text:SetPoint("TOPLEFT", balloon_slice_C, "TOPLEFT")
+balloon.text:SetWidth(balloon_slice_C:GetWidth())
+balloon.text:SetText("It looks like you're trying to play WoW.|n|nWould you like some help with that?")
+
+-- Resize balloon to fit text.
+balloon:SetHeight(
+	balloon.text:GetHeight() +
+	balloon.text:GetLineHeight() +
+	2 * balloon_corner_size
+)
+
 -- Enable custom WeakAura support.
 is_frame_ready = true
 
