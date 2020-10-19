@@ -3,9 +3,9 @@ local data = ClippyAssist.data
 local animation_queue = {}
 local animation_needs_init = true
 
------------------------
--- Utility Functions --
------------------------
+---------------------------
+-- Convenience Functions --
+---------------------------
 
 local function QueueAnimation(animation, callback)
 	table.insert(animation_queue, {
@@ -25,6 +25,7 @@ local function QueueAnimationLoop(animation, callback)
 	animation_needs_init = true
 end
 
+-- Queue an animation with no callback.
 local function SingleAnimation(animation)
 	QueueAnimation(animation, function() end)
 	table.insert(animation_queue, {
@@ -34,6 +35,8 @@ local function SingleAnimation(animation)
 	})
 end
 
+-- Queue an animation with no callback, *only* if no animations are
+-- currently playing already.
 local function IdleAnimation(animation)
 	if #(animation_queue) == 1 and
 		animation_queue[1].animation == "RestPose"
@@ -41,6 +44,10 @@ local function IdleAnimation(animation)
 		SingleAnimation(animation)
 	end
 end
+
+-------------------------
+-- Animation Functions --
+-------------------------
 
 -- Initialize the data structures AnimateTexCoords() requires to
 -- properly calculate tex coords. Minimal work is performed here.
@@ -132,16 +139,19 @@ end
 -- Main Frame Setup --
 ----------------------
 
+-- Create and position addon frame.
 local frame = CreateFrame("Frame", "ClippyFrame", UIParent)
 frame:SetSize(124, 93)
 frame:SetPoint("CENTER")
 frame:SetFrameStrata("HIGH")
 
+-- Create frame texture and set anchors.
 local texture = frame:CreateTexture(nil, "OVERLAY")
 frame.texture = texture
 texture:SetAllPoints("ClippyFrame")
 frame:Show()
 
+-- Set mouse interaction properties of addon frame.
 frame:EnableMouse(true)
 frame:SetMovable(true)
 frame:SetClampedToScreen(true)
@@ -157,12 +167,14 @@ frame:SetScript("OnDragStop", function(self)
 	self:StopMovingOrSizing()
 end)
 
+-- Set up syntactic sugar for handling all events.
 ClippyFrame.events = {}
 function ClippyFrame_OnEvent(self, event, ...)
 	ClippyFrame.events[event](self, ...)
 end
 frame:SetScript("OnEvent", ClippyFrame_OnEvent)
 
+-- Set up animation update logic.
 frame:SetScript("OnUpdate", function(self, elapsed)
 	if #(animation_queue) == 0 then
 		return
@@ -194,7 +206,9 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 
 	end)
 
--- Events
+------------
+-- Events --
+------------
 
 -- Idle: 10% GetArtsy, 10% Print, 20% GetAttention, 60% Look{direction}
 local function AnimateIdle()
@@ -398,7 +412,7 @@ function SlashCmdList.CLIPPY(msg, editBox)
 		print("  -list: Lists all available animations.")
 		print("  everything else: Attempts to play that animation.")
 	elseif msg == "-hide" then
-		frame:Hide()
+		frame:Hide()	-- Note: also prevents frame:OnUpdate() from firing!
 	elseif msg == "-show" then
 		frame:Show()
 	elseif msg == "-reset" or msg == "-r" then
