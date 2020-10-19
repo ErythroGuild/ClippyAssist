@@ -3,6 +3,7 @@ local data = ClippyAssist.data
 local animation_queue = {}
 local animation_needs_init = true
 local is_frame_ready = false
+local time_hide_text = GetTime()
 
 ---------------------------
 -- Convenience Functions --
@@ -46,20 +47,6 @@ local function IdleAnimation(animation)
 	end
 end
 
--------------------------------
--- Custom WeakAura Interface --
--------------------------------
-
--- Check that Clippy is initialized before attempting to use addon.
-function ClippyAssist.isReady()
-	return is_frame_ready
-end
-
--- Display a speech bubble for the specified duration.
-function ClippyAssist.SetText(msg, duration)
-	IdleAnimation("Explain")
-end
-
 -------------------------
 -- Animation Functions --
 -------------------------
@@ -81,8 +68,8 @@ local function InitTexCoords(
 	texture.frame = 1
 	texture.elapsed = 0
 
-	texture.cols = floor(animation.tex_width / frameWidth)
-	texture.rows = floor(animation.tex_height / frameHeight)
+	texture.cols = math.floor(animation.tex_width / frameWidth)
+	texture.rows = math.floor(animation.tex_height / frameHeight)
 
 	-- Setting tex coords bases dimensions off of the parent's
 	-- UV-coords, where max (width, height) is (1, 1).
@@ -135,7 +122,7 @@ local function AnimateTexCoords(texture, animation, elapsed)
 	-- require an extra check.
 	local left = ((texture.frame - 1) % texture.cols) * texture.w_col
 	local right = left + texture.w_col
-	local bottom = ceil(texture.frame / texture.cols) * texture.h_row
+	local bottom = math.ceil(texture.frame / texture.cols) * texture.h_row
 	local top = bottom - texture.h_row
 	texture:SetTexCoord(left, right, top, bottom)
 
@@ -180,6 +167,7 @@ frame:SetScript("OnDragStart", function(self, button)
 end)
 frame:SetScript("OnDragStop", function(self)
 	self:StopMovingOrSizing()
+	ClippyAssist.PositionBalloon()
 end)
 
 -- Set up syntactic sugar for handling all events.
@@ -231,7 +219,7 @@ local balloon_corner_size = 15
 local balloon = CreateFrame("Frame", "ClippyBalloon", frame)
 balloon:Hide()
 balloon:SetSize(180, 260)
-balloon:SetPoint("BOTTOMRIGHT", frame, "TOPLEFT")
+balloon:SetPoint("CENTER")
 balloon:SetFrameStrata("HIGH")
 
 -- Corner pieces.
@@ -299,17 +287,91 @@ balloon.text:SetJustifyH("LEFT")
 balloon.text:SetJustifyV("TOP")
 balloon.text:SetPoint("TOPLEFT", balloon_slice_C, "TOPLEFT")
 balloon.text:SetWidth(balloon_slice_C:GetWidth())
-balloon.text:SetText("It looks like you're trying to play WoW.|n|nWould you like some help with that?")
+balloon.text:SetText("")
 
--- Resize balloon to fit text.
-balloon:SetHeight(
-	balloon.text:GetHeight() +
-	balloon.text:GetLineHeight() +
-	2 * balloon_corner_size
-)
+-- Balloon tip frame.
+local path_balloon_tip_texture = "Interface/AddOns/ClippyAssist/rc/tip.tga"
+local balloon_tip_size = 20
+local balloon_tip = CreateFrame("Frame", "BalloonTip", balloon)
+balloon_tip:SetSize(balloon_tip_size, balloon_tip_size)
+balloon_tip:SetFrameStrata("HIGH")
+local balloon_texture = balloon_tip:CreateTexture()
+balloon_texture:SetAllPoints()
+balloon_texture:SetTexture(path_balloon_tip_texture)
+
+-- Positioning convenience function.
+ClippyAssist.PositionBalloon = function()
+	local x_mid = GetScreenWidth() / 2
+	local y_mid = GetScreenHeight() / 2
+	local x_frame, y_frame = frame:GetCenter()
+	x_frame = x_frame - x_mid
+	y_frame = y_frame - y_mid
+
+	balloon:ClearAllPoints()
+	if     x_frame >= 0 and y_frame >= 0 then
+		balloon:SetPoint("TOPRIGHT", frame, "BOTTOMLEFT", 100, -10)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("BOTTOMLEFT", balloon, "TOP", -15, -2)
+		balloon_texture:SetTexCoord(0.5, 1.0, 0.0, 0.5)
+	elseif x_frame >= 0 and y_frame <  0 then
+		balloon:SetPoint("BOTTOMRIGHT", frame, "TOPLEFT", 80, 5)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("TOPLEFT", balloon, "BOTTOM", 25, 2)
+		balloon_texture:SetTexCoord(0.5, 1.0, 0.5, 1.0)
+	elseif x_frame <  0 and y_frame <  0 then
+		balloon:SetPoint("BOTTOMLEFT", frame, "TOPRIGHT", -60, 5)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("TOPRIGHT", balloon, "BOTTOM", -20, 2)
+		balloon_texture:SetTexCoord(0.0, 0.5, 0.5, 1.0)
+	else --x_frame <  0 and y_frame >= 0
+		balloon:SetPoint("TOPLEFT", frame, "BOTTOMRIGHT", -80, -10)
+		balloon_tip:ClearAllPoints()
+		balloon_tip:SetPoint("BOTTOMRIGHT", balloon, "TOP", -10, -2)
+		balloon_texture:SetTexCoord(0.0, 0.5, 0.0, 0.5)
+	end
+end
 
 -- Enable custom WeakAura support.
 is_frame_ready = true
+
+-------------------------------
+-- Custom WeakAura Interface --
+-------------------------------
+
+-- Check that Clippy is initialized before attempting to use addon.
+function ClippyAssist.isReady()
+	return is_frame_ready
+end
+
+-- Display a speech bubble for the specified duration.
+function ClippyAssist.SetText(msg, duration)
+	balloon.text:SetText(msg)
+
+	-- Resize balloon to fit text.
+	balloon:SetHeight(
+		balloon.text:GetHeight() +
+		balloon.text:GetLineHeight() +
+		2 * balloon_corner_size
+	)
+
+	-- Position balloon depending on Clippy's location.
+	ClippyAssist.PositionBalloon()
+
+	-- Display balloon.
+	balloon:Show()
+	IdleAnimation("Explain")
+
+	-- Set up hiding for balloon.
+	time_hide_text = GetTime() + duration
+	C_Timer.After(duration, function()
+		print("current time: " .. GetTime())
+		print("hide time: " .. time_hide_text)
+		if GetTime() > time_hide_text then
+			balloon:Hide()
+			balloon.text:SetText("")
+		end
+	end)
+end
 
 ------------
 -- Events --
