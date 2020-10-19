@@ -1,54 +1,133 @@
 local data = ClippyAssist.data
 
-local animation_queue = {"RestPose"}
+local animation_queue = {}
+local animation_needs_init = true
 
 -----------------------
 -- Utility Functions --
 -----------------------
 
-local function QueueAnimation(animation)
-	table.insert(animation_queue, animation)
-	table.insert(animation_queue, "RestPose")
+local function QueueAnimation(animation, callback)
+	table.insert(animation_queue, {
+		mode = "normal",
+		["animation"] = animation,
+		["callback"] = callback,
+	})
+	animation_needs_init = true
 end
 
-local function AnimateTexCoordsSingle(texture,
-	texturePath,
-	textureWidth, textureHeight,
-	frameWidth, frameHeight,
-	numFrames, elapsed, throttle)
-	if ( not texture.frame ) then
-		-- initialize everything
-		texture.frame = 1;
-		texture.throttle = throttle;
-		texture.numColumns = floor(textureWidth/frameWidth);
-		texture.numRows = floor(textureHeight/frameHeight);
-		texture.columnWidth = frameWidth/textureWidth;
-		texture.rowHeight = frameHeight/textureHeight;
-		texture.isFinished = false;
-	end
-	local frame = texture.frame;
-	if ( not texture.throttle or texture.throttle > throttle ) then
-		local framesToAdvance = floor(texture.throttle / throttle);
-		while ( frame + framesToAdvance > numFrames ) do
-			frame = frame - numFrames;
-		end
-		frame = frame + framesToAdvance;
-		texture.throttle = 0;
-		local left = mod(frame-1, texture.numColumns)*texture.columnWidth;
-		local right = left + texture.columnWidth;
-		local bottom = ceil(frame/texture.numColumns)*texture.rowHeight;
-		local top = bottom - texture.rowHeight;
-		texture:SetTexCoord(left, right, top, bottom);
-		if texture.frame == 1 then
-			texture:SetTexture(texturePath)
-		end
+local function QueueAnimationLoop(animation, callback)
+	table.insert(animation_queue, {
+		mode = "loop",
+		["animation"] = animation,
+		["callback"] = callback,
+	})
+	animation_needs_init = true
+end
 
-		texture.frame = frame;
-		if frame == numFrames then
-			texture.isFinished = true
+local function SingleAnimation(animation)
+	QueueAnimation(animation, function() end)
+	table.insert(animation_queue, {
+		mode = "loop",
+		["animation"] = "RestPose",
+		["callback"] = function() end,
+	})
+end
+
+local function IdleAnimation(animation)
+	if #(animation_queue) == 1 and
+		animation_queue[1].animation == "RestPose"
+	then
+		SingleAnimation(animation)
+	end
+end
+
+-- Initialize the data structures AnimateTexCoords() requires to
+-- properly calculate tex coords. Minimal work is performed here.
+local function InitTexCoords(
+	texture, animation,
+	frameWidth, frameHeight,
+	callback)
+
+	animation_needs_init = false
+
+	-- Actual texture path is set on first tex coord update
+	-- (AnimateTexCoords()), not here (since proper tex coords
+	-- haven't been calculated yet).
+	texture.isSet = false
+
+	texture.frame = 1
+	texture.elapsed = 0
+
+	texture.cols = floor(animation.tex_width / frameWidth)
+	texture.rows = floor(animation.tex_height / frameHeight)
+
+	-- Setting tex coords bases dimensions off of the parent's
+	-- UV-coords, where max (width, height) is (1, 1).
+	texture.w_col = frameWidth / animation.tex_width
+	texture.h_row = frameHeight / animation.tex_height
+
+	-- Using a callback to handle the "animation finished" event
+	-- is the most flexible way to do this.
+	texture.callback = callback
+end
+
+-- Moves local texture coordinates of a frame across a spritesheet
+-- texture (stop-motion animation).
+-- Intended to be called inside a tight OnUpdate() loop.
+-- (Based off the code for Blizzard's LFG "eye" searching icon.)
+local function AnimateTexCoords(texture, animation, elapsed)
+	
+	local elapsed_total = elapsed + texture.elapsed
+
+	-- If next frame isn't due yet, account for the current update's
+	-- elapsed time, then return without performing any work.
+	if texture.isSet and
+		elapsed_total <= animation.timing[texture.frame]
+	then
+		texture.elapsed = elapsed_total
+		return
+	end
+
+	-- Increment current frame until we reach the one to display.
+	-- Less efficient than Blizzard's method (which assumes a constant
+	-- frame time), but allows for variable frame timing.
+	while texture.frame <= animation.frames and
+		elapsed_total > animation.timing[texture.frame]
+	do
+		elapsed_total = elapsed_total - animation.timing[texture.frame]
+		texture.frame = texture.frame + 1
+	end
+	texture.elapsed = elapsed_total
+
+	-- If we've gone past the end of the current animation, we can
+	-- trigger our callback and then return (w/out doing work to figure
+	-- out our new tex coords).
+	if texture.frame > animation.frames then
+		texture.callback()
+		return
+	end
+	
+	-- Calculate new local texture coordinates.
+	-- `bottom` is calculated before `top` to make ceil() rounding not
+	-- require an extra check.
+	local left = ((texture.frame - 1) % texture.cols) * texture.w_col
+	local right = left + texture.w_col
+	local bottom = ceil(texture.frame / texture.cols) * texture.h_row
+	local top = bottom - texture.h_row
+	texture:SetTexCoord(left, right, top, bottom)
+
+	-- This is only called once per animation, on the first frame.
+	-- Subsequent OnUpdate() calls during the first frame will return
+	-- early and skip executing this line.
+	-- This call is delayed until after SetTexCoord() to prevent the
+	-- frame from flashing entire unset textures.
+	if not texture.isSet then
+		texture:SetTexture(animation.path)
+		texture.isSet = true
+		if not ClippyFrame:IsShown() then
+			ClippyFrame:Show()
 		end
-	else
-		texture.throttle = texture.throttle + elapsed;
 	end
 end
 
@@ -70,11 +149,11 @@ frame:SetMovable(true)
 frame:SetClampedToScreen(true)
 frame:RegisterForDrag("LeftButton")
 frame:SetScript("OnMouseUp", function(self, button)
-	QueueAnimation("Wave1")
+	IdleAnimation("Wave1")
 end)
 frame:SetScript("OnDragStart", function(self, button)
 	self:StartMoving()
-	QueueAnimation("Wave2")
+	IdleAnimation("Wave2")
 end)
 frame:SetScript("OnDragStop", function(self)
 	self:StopMovingOrSizing()
@@ -87,32 +166,35 @@ end
 frame:SetScript("OnEvent", ClippyFrame_OnEvent)
 
 frame:SetScript("OnUpdate", function(self, elapsed)
-	local animation = animation_queue[1]
-	local frame_duration
-	if texture.frame then
-		frame_duration = data[animation].timing[texture.frame]
-	else
-		frame_duration = data[animation].timing[1]
+	if #(animation_queue) == 0 then
+		return
 	end
 
-	AnimateTexCoordsSingle(self.texture,
-		data[animation].path,
-		data[animation].tex_width, 
-		data[animation].tex_height,
-		124, 93,
-		data[animation].frames,
-		elapsed,
-		frame_duration)
-
-	if texture.isFinished then
-		texture.isFinished = false
-		if #(animation_queue) > 1 then
-			table.remove(animation_queue, 1)
-			animation = animation_queue[1]
-			texture.frame = nil
-		end
+	if animation_needs_init then
+		InitTexCoords(
+			frame.texture,
+			data[animation_queue[1].animation],
+			124, 93,
+			function()
+				animation_queue[1].callback()
+				animation_needs_init = true
+				if #(animation_queue) > 1 or
+					animation_queue[1].mode == "normal"
+				then
+					table.remove(animation_queue, 1)
+				end
+				if #(animation_queue) == 0 then
+					frame:Hide()
+				end
+			end)
 	end
-end)
+	
+	AnimateTexCoords(
+		frame.texture,
+		data[animation_queue[1].animation],
+		elapsed)
+
+	end)
 
 -- Events
 
@@ -122,21 +204,21 @@ local function AnimateIdle()
 	C_Timer.After(delay, function()
 		local chance = math.random()
 		if chance < 0.10 then
-			QueueAnimation("GetArtsy")
+			IdleAnimation("GetArtsy")
 		elseif chance < 0.20 then
-			QueueAnimation("Print")
+			IdleAnimation("Print")
 		elseif chance < 0.40 then
-			QueueAnimation("GetAttention")
+			IdleAnimation("GetAttention")
 		else
 			chance = math.random(1, 8)
-			if     chance == 1 then QueueAnimation("LookUp")
-			elseif chance == 2 then QueueAnimation("LookUpRight")
-			elseif chance == 3 then QueueAnimation("LookRight")
-			elseif chance == 4 then QueueAnimation("LookDownRight")
-			elseif chance == 5 then QueueAnimation("LookDown")
-			elseif chance == 6 then QueueAnimation("LookDownLeft")
-			elseif chance == 7 then QueueAnimation("LookLeft")
-			elseif chance == 8 then QueueAnimation("LookUpLeft")
+			if     chance == 1 then IdleAnimation("LookUp")
+			elseif chance == 2 then IdleAnimation("LookUpRight")
+			elseif chance == 3 then IdleAnimation("LookRight")
+			elseif chance == 4 then IdleAnimation("LookDownRight")
+			elseif chance == 5 then IdleAnimation("LookDown")
+			elseif chance == 6 then IdleAnimation("LookDownLeft")
+			elseif chance == 7 then IdleAnimation("LookLeft")
+			elseif chance == 8 then IdleAnimation("LookUpLeft")
 			end
 		end
 		AnimateIdle()
@@ -147,9 +229,9 @@ end
 frame:RegisterEvent("CHAT_MSG_RAID_WARNING")
 frame:RegisterEvent("READY_CHECK")
 frame:RegisterEvent("ROLE_POLL_BEGIN")
-function frame.events:CHAT_MSG_RAID_WARNING(...) QueueAnimation("Alert") end
-function frame.events:READY_CHECK(...)		QueueAnimation("Alert") end
-function frame.events:ROLE_POLL_BEGIN(...)	QueueAnimation("Alert") end
+function frame.events:CHAT_MSG_RAID_WARNING(...) SingleAnimation("Alert") end
+function frame.events:READY_CHECK(...)		SingleAnimation("Alert") end
+function frame.events:ROLE_POLL_BEGIN(...)	SingleAnimation("Alert") end
 -- paragon chest complete
 -- received zone quest (legion/bfa assaults)
 
@@ -172,22 +254,22 @@ frame:RegisterEvent("NEW_MOUNT_ADDED")
 frame:RegisterEvent("NEW_PET_ADDED")
 frame:RegisterEvent("NEW_TOY_ADDED")
 frame:RegisterEvent("BARBER_SHOP_APPEARANCE_APPLIED")
-function frame.events:BOSS_KILL(...)			QueueAnimation("Congratulate") end
-function frame.events:CHALLENGE_MODE_COMPLETED() QueueAnimation("Congratulate") end
-function frame.events:QUEST_TURNED_IN(...)		QueueAnimation("Congratulate") end
-function frame.events:ISLAND_COMPLETED(...)		QueueAnimation("Congratulate") end
-function frame.events:WARFRONT_COMPLETED(...)	QueueAnimation("Congratulate") end
-function frame.events:ACHIEVEMENT_EARNED(...)	QueueAnimation("Congratulate") end
-function frame.events:PLAYER_LEVEL_UP(...)		QueueAnimation("Congratulate") end
-function frame.events:PLAYER_UNGHOST()			QueueAnimation("Congratulate") end
+function frame.events:BOSS_KILL(...)			SingleAnimation("Congratulate") end
+function frame.events:CHALLENGE_MODE_COMPLETED() SingleAnimation("Congratulate") end
+function frame.events:QUEST_TURNED_IN(...)		SingleAnimation("Congratulate") end
+function frame.events:ISLAND_COMPLETED(...)		SingleAnimation("Congratulate") end
+function frame.events:WARFRONT_COMPLETED(...)	SingleAnimation("Congratulate") end
+function frame.events:ACHIEVEMENT_EARNED(...)	SingleAnimation("Congratulate") end
+function frame.events:PLAYER_LEVEL_UP(...)		SingleAnimation("Congratulate") end
+function frame.events:PLAYER_UNGHOST()			SingleAnimation("Congratulate") end
 function frame.events:PLAYER_ALIVE()
-	if (not UnitIsDeadOrGhost("player")) then QueueAnimation("Congratulate") end
+	if (not UnitIsDeadOrGhost("player")) then SingleAnimation("Congratulate") end
 end
-function frame.events:DUEL_FINISHED()			QueueAnimation("Congratulate") end
-function frame.events:NEW_MOUNT_ADDED(...)		QueueAnimation("Congratulate") end
-function frame.events:NEW_PET_ADDED(...)		QueueAnimation("Congratulate") end
-function frame.events:NEW_TOY_ADDED(...)		QueueAnimation("Congratulate") end
-function frame.events:BARBER_SHOP_APPEARANCE_APPLIED() QueueAnimation("Congratulate") end
+function frame.events:DUEL_FINISHED()			SingleAnimation("Congratulate") end
+function frame.events:NEW_MOUNT_ADDED(...)		SingleAnimation("Congratulate") end
+function frame.events:NEW_PET_ADDED(...)		SingleAnimation("Congratulate") end
+function frame.events:NEW_TOY_ADDED(...)		SingleAnimation("Congratulate") end
+function frame.events:BARBER_SHOP_APPEARANCE_APPLIED() SingleAnimation("Congratulate") end
 -- rare elite killed
 -- received AH mail
 -- reached reputation level
@@ -199,11 +281,11 @@ function frame.events:BARBER_SHOP_APPEARANCE_APPLIED() QueueAnimation("Congratul
 frame:RegisterEvent("PLAYER_DEAD")
 frame:RegisterEvent("ENCOUNTER_END")
 frame:RegisterEvent("DELETE_ITEM_CONFIRM")
-function frame.events:PLAYER_DEAD()				QueueAnimation("EmptyTrash") end
+function frame.events:PLAYER_DEAD()				SingleAnimation("EmptyTrash") end
 function frame.events:ENCOUNTER_END(encounterID, encounterName, difficultyID, groupSize, success)
-	if success == 0 then QueueAnimation("EmptyTrash") end
+	if success == 0 then SingleAnimation("EmptyTrash") end
 end
-function frame.events:DELETE_ITEM_CONFIRM(...)	QueueAnimation("EmptyTrash") end
+function frame.events:DELETE_ITEM_CONFIRM(...)	SingleAnimation("EmptyTrash") end
 -- key failed
 -- duel lost
 
@@ -213,7 +295,7 @@ function frame.events:DELETE_ITEM_CONFIRM(...)	QueueAnimation("EmptyTrash") end
 -- GetAttention
 frame:RegisterEvent("PLAYER_FLAGS_CHANGED")
 function frame.events:PLAYER_FLAGS_CHANGED(unitTarget)
-	if unitTarget == "player" and UnitIsAFK("player") then QueueAnimation("GetAttention") end
+	if unitTarget == "player" and UnitIsAFK("player") then SingleAnimation("GetAttention") end
 end
 -- afk logout starts
 
@@ -223,17 +305,17 @@ end
 
 -- Greeting
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-function frame.events:PLAYER_ENTERING_WORLD(...)
-	C_Timer.After(5.0, function()
-		if (math.random() < 0.40) then
-			QueueAnimation("Greeting1")
-		else
-			QueueAnimation("Greeting2")
-		end
-		frame.texture.frame = nil
-		frame:Show()
-		AnimateIdle()
-	end)
+function frame.events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
+	if isInitialLogin or isReloadingUi then
+		C_Timer.After(5.0, function()
+			if (math.random() < 0.40) then
+				SingleAnimation("Greeting1")
+			else
+				SingleAnimation("Greeting2")
+			end
+			AnimateIdle()
+		end)
+	end
 end
 
 -- Hide
@@ -251,7 +333,7 @@ end
 
 -- SendMail
 frame:RegisterEvent("MAIL_SEND_SUCCESS")
-function frame.events:MAIL_SEND_SUCCESS()	QueueAnimation("SendMail") end
+function frame.events:MAIL_SEND_SUCCESS()	SingleAnimation("SendMail") end
 -- trade complete
 
 -- Show
@@ -267,27 +349,27 @@ function frame.events:MAIL_SEND_SUCCESS()	QueueAnimation("SendMail") end
 frame:RegisterEvent("START_TIMER")
 function frame.events:START_TIMER(timerType, timeRemaining, totalTime)
 	if timerType == 3 then
-		QueueAnimation("Alert")
-		QueueAnimation("GetAttention")
+		SingleAnimation("Alert")
+		SingleAnimation("GetAttention")
 		local x_mid = GetScreenWidth() / 2
 		local y_mid = GetScreenHeight() / 2
 		local x_frame, y_frame = frame:GetCenter()
 		x_frame = x_frame - x_mid
 		y_frame = y_frame - y_mid
 		local theta = atan2(y_frame, x_frame)
-		if     theta >  -45 and theta <=   45 then QueueAnimation("GestureRight2")
-		elseif theta >   45 and theta <=  135 then QueueAnimation("GestureDown2")
-		elseif theta >  135 or  theta <= -135 then QueueAnimation("GestureLeft2")
-		elseif theta > -135 and theta <=  -45 then QueueAnimation("GestureUp2")
+		if     theta >  -45 and theta <=   45 then SingleAnimation("GestureRight2")
+		elseif theta >   45 and theta <=  135 then SingleAnimation("GestureDown2")
+		elseif theta >  135 or  theta <= -135 then SingleAnimation("GestureLeft2")
+		elseif theta > -135 and theta <=  -45 then SingleAnimation("GestureUp2")
 		end
-		if     theta >  -22.5 and theta <=   22.5 then QueueAnimation("LookRight")
-		elseif theta >   22.5 and theta <=   67.5 then QueueAnimation("LookDownRight")
-		elseif theta >   67.5 and theta <=  112.5 then QueueAnimation("LookDown")
-		elseif theta >  112.5 and theta <=  157.5 then QueueAnimation("LookDownLeft")
-		elseif theta >  157.5 and theta <= -157.5 then QueueAnimation("LookLeft")
-		elseif theta > -157.5 and theta <= -112.5 then QueueAnimation("LookUpLeft")
-		elseif theta > -112.5 and theta <=  -67.5 then QueueAnimation("LookUp")
-		elseif theta >  -67.5 and theta <=  -22.5 then QueueAnimation("LookUpRight")
+		if     theta >  -22.5 and theta <=   22.5 then SingleAnimation("LookRight")
+		elseif theta >   22.5 and theta <=   67.5 then SingleAnimation("LookDownRight")
+		elseif theta >   67.5 and theta <=  112.5 then SingleAnimation("LookDown")
+		elseif theta >  112.5 and theta <=  157.5 then SingleAnimation("LookDownLeft")
+		elseif theta >  157.5 and theta <= -157.5 then SingleAnimation("LookLeft")
+		elseif theta > -157.5 and theta <= -112.5 then SingleAnimation("LookUpLeft")
+		elseif theta > -112.5 and theta <=  -67.5 then SingleAnimation("LookUp")
+		elseif theta >  -67.5 and theta <=  -22.5 then SingleAnimation("LookUpRight")
 		end
 	end
 end
@@ -325,13 +407,22 @@ function SlashCmdList.CLIPPY(msg, editBox)
 		frame:ClearAllPoints()
 		frame:SetPoint("CENTER")
 	elseif msg == "-list" or msg == "-l" then
+		print("Clippy's available animations:")
+		local display = {}
+		for i,_ in pairs(data) do
+			table.insert(display, i)
+		end
+		table.sort(display)
+		for _,name in ipairs(display) do
+			print("  " .. name)
+		end
 	else
 		if data.msg == nil then
 			print("Couldn't find that animation.")
 			print("Use \"/clippy -list\" to list available animations.")
 			print("Use \"/clippy -help\" to view all commands.")
 		else
-			QueueAnimation(msg)
+			SingleAnimation(msg)
 		end
 	end
 end
