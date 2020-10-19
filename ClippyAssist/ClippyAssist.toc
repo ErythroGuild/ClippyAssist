@@ -2,7 +2,7 @@
 ## Title: Clippy Assist
 ## Author: Ernest Gu
 ## Version: 1.1.0
-## Notes: Bring back Clippy to help you improve your performance in WoW!
+## Notes: Would you like some help with that?
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 
