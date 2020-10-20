@@ -364,8 +364,6 @@ function ClippyAssist.SetText(msg, duration)
 	-- Set up hiding for balloon.
 	time_hide_text = GetTime() + duration
 	C_Timer.After(duration, function()
-		print("current time: " .. GetTime())
-		print("hide time: " .. time_hide_text)
 		if GetTime() > time_hide_text then
 			balloon:Hide()
 			balloon.text:SetText("")
