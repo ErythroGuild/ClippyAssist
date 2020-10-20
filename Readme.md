@@ -38,7 +38,7 @@ Here's an example:
 ```lua
 if ClippyAssist and ClippyAssist.isReady() then
 	local message =
-		"It looks like you're trying to write a letter." .. "\n" ..
+		"It looks like you're trying to write a letter." .. "|n|n" ..
 		"Would you like some help with that?"
 	ClippyAssist.SetText(message, 10.0)
 end
