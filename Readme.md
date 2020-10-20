@@ -50,14 +50,17 @@ end
 
 *Download the latest release from GitHub [here][2].*
 
-*Premade WeakAuras are available from <span>Wago.io</span> [here][4].*
+*Premade WeakAuras are available from <span>Wago.io</span> [here][3].*
 
-*All available animations can be viewed in [this Imgur gallery][5].*
+*All available animations can be viewed in [this Imgur gallery][4].*
 
-*Latest CurseForge screenshots are [here][4].*
+*Latest CurseForge screenshots are [here][5].*
+
+*A list of historical screenshots can be found in [this Imgur gallery][6].*
 
 [1]: https://www.curseforge.com/wow/addons/clippy-assist
 [2]: https://github.com/ErythroGuild/ClippyAssist/releases/latest
 [3]: https://wago.io/uh00qHmL4
 [4]: https://imgur.com/a/I6QzlrW
 [5]: https://www.curseforge.com/wow/addons/clippy-assist/screenshots
+[6]: https://imgur.com/a/vc5u7OI
