@@ -58,6 +58,6 @@ end
 
 [1]: https://www.curseforge.com/wow/addons/clippy-assist
 [2]: https://github.com/ErythroGuild/ClippyAssist/releases/latest
-[3]: https://wago.io/
+[3]: https://wago.io/uh00qHmL4
 [4]: https://imgur.com/a/I6QzlrW
 [5]: https://www.curseforge.com/wow/addons/clippy-assist/screenshots
