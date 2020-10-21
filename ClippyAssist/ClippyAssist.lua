@@ -37,6 +37,11 @@ local function SingleAnimation(animation)
 	})
 end
 
+-- Queue a looping animation with no callback.
+local function LoopAnimation(animation)
+	QeueuAnimationLoop(animation, function() end)
+end
+
 -- Queue an animation with no callback, *only* if no animations are
 -- currently playing already.
 local function IdleAnimation(animation)
